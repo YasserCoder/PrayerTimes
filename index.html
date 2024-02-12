@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Prayer Times</title>
+        <link rel="stylesheet" href="style.css" />
+        <script defer src="app.js"></script>
+    </head>
+    <body>
+        <header>
+            <div class="container">
+                <div class="eng">Prayer Timings</div>
+                <div class="ar">مواقيـــــت الصلاة</div>
+            </div>
+        </header>
+        <div class="container">
+            <div class="interface">
+                <div class="config">
+                    <div class="selection">
+                        <div>
+                            <label for="country-select"
+                                >Select your Country:</label
+                            >
+
+                            <select name="country" id="country-select"></select>
+                        </div>
+                        <div>
+                            <label for="city-select">Select your City:</label>
+
+                            <select name="city" id="city-select"></select>
+                        </div>
+                    </div>
+                    <div class="dateselect">
+                        <label for="datePicker">Choose a date:</label>
+                        <input type="date" id="datePicker" />
+                    </div>
+                    <div>
+                        <button class="btn" disabled>Confirm</button>
+                    </div>
+                </div>
+                <div class="prayer_table">
+                    <div class="cell">
+                        <div class="prayer" id="Fajr">Fajr</div>
+                        <div class="time"></div>
+                    </div>
+                    <div class="cell">
+                        <div class="prayer" id="Sunrise">Sunrise</div>
+                        <div class="time"></div>
+                    </div>
+                    <div class="cell">
+                        <div class="prayer" id="Dhuhr">Dhuhr</div>
+                        <div class="time"></div>
+                    </div>
+                    <div class="cell">
+                        <div class="prayer" id="Asr">Asr</div>
+                        <div class="time"></div>
+                    </div>
+                    <div class="cell">
+                        <div class="prayer" id="Maghrib">Maghrib</div>
+                        <div class="time"></div>
+                    </div>
+                    <div class="cell">
+                        <div class="prayer" id="Isha">Isha</div>
+                        <div class="time"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
