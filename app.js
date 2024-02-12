@@ -75,13 +75,13 @@ function getprayers(country, city, date) {
     let link = "";
     if (date === "") {
         link =
-            "http://api.aladhan.com/v1/timingsByCity?city=" +
+            "https://api.aladhan.com/v1/timingsByCity?city=" +
             city +
             "&country=" +
             country;
     } else {
         link =
-            "http://api.aladhan.com/v1/timingsByCity/" +
+            "https://api.aladhan.com/v1/timingsByCity/" +
             date +
             "?city=" +
             city +
