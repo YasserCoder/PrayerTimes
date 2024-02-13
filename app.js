@@ -110,7 +110,6 @@ function getprayers(country, city, date) {
 
 async function runrequests() {
     const countrysl = await getcountry();
-    console.log(countrysl);
     const ctysl = await getcities(countrysl);
     let state;
     if (localStorage.length !== 0) {
