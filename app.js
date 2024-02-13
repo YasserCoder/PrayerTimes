@@ -3,72 +3,70 @@ let citylist = document.querySelector("#city-select");
 let btn = document.querySelector(".btn");
 let datepicker = document.querySelector("#datePicker");
 
-function getcountry() {
-    return new Promise((resolve, reject) => {
-        fetch("https://countriesnow.space/api/v0.1/countries/iso")
-            .then((response) => {
-                if (response.ok) {
-                    return response.json();
-                } else {
-                    reject("error with users request");
-                }
-            })
-            .then((countries) => {
-                for (let country of countries.data) {
-                    let option = document.createElement("option");
-                    option.value = country.name;
-                    option.textContent = country.name;
-                    countrylist.appendChild(option);
-                }
-                let countrysl;
-                if (localStorage.length !== 0) {
-                    countrysl = localStorage.getItem("country");
-                } else {
-                    countrysl = "Algeria";
-                }
-                document
-                    .querySelector(
-                        "#country-select option[value='" + countrysl + "']"
-                    )
-                    .setAttribute("selected", "");
+async function getcountry() {
+    return fetch("https://countriesnow.space/api/v0.1/countries/iso")
+        .then((response) => {
+            if (response.ok) {
+                return response.json();
+            }
+        })
+        .then((countries) => {
+            for (let country of countries.data) {
+                let option = document.createElement("option");
+                option.value = country.name;
+                option.textContent = country.name;
+                countrylist.appendChild(option);
+            }
+            let countrysl;
+            if (localStorage.length !== 0) {
+                countrysl = localStorage.getItem("country");
+            } else {
+                countrysl = "Algeria";
+            }
+            document
+                .querySelector(
+                    "#country-select option[value='" + countrysl + "']"
+                )
+                .setAttribute("selected", "");
 
-                resolve(countrysl);
-            });
-    });
+            return countrysl;
+        })
+        .catch(() => {
+            alert("Cannot connect to countries API");
+        });
 }
 
-function getcities(countrysl) {
-    return new Promise((resolve, reject) => {
-        fetch("https://countriesnow.space/api/v0.1/countries/states", {
-            method: "POST",
-            body: JSON.stringify({ country: countrysl }),
-            headers: {
-                "Content-Type": "application/json",
-            },
+async function getcities(countrysl) {
+    return fetch("https://countriesnow.space/api/v0.1/countries/states", {
+        method: "POST",
+        body: JSON.stringify({ country: countrysl }),
+        headers: {
+            "Content-Type": "application/json",
+        },
+    })
+        .then((response) => {
+            if (response.ok) {
+                return response.json();
+            }
         })
-            .then((response) => {
-                if (response.ok) {
-                    return response.json();
-                } else {
-                    reject("error with users request");
-                }
-            })
-            .then((states) => {
-                citylist.innerHTML = "";
-                for (let state of states.data.states) {
-                    let option = document.createElement("option");
-                    option.value = state.name;
-                    option.textContent = state.name;
-                    citylist.appendChild(option);
-                }
-                let selectedIndex = citylist.selectedIndex;
+        .then((states) => {
+            citylist.innerHTML = "";
+            for (let state of states.data.states) {
+                let option = document.createElement("option");
+                option.value = state.name;
+                option.textContent = state.name;
+                citylist.appendChild(option);
+            }
+            let selectedIndex = citylist.selectedIndex;
 
-                let citysl = citylist.options[selectedIndex].value;
-                resolve(citysl);
+            let citysl = citylist.options[selectedIndex].value;
 
-                btn.removeAttribute("disabled");
-            });
-    });
+            btn.removeAttribute("disabled");
+            return citysl;
+        })
+        .catch(() => {
+            alert("Cannot connect to states API");
+        });
 }
 
 function getprayers(country, city, date) {
@@ -110,7 +108,24 @@ function getprayers(country, city, date) {
         });
 }
 
+async function runrequests() {
+    const countrysl = await getcountry();
+    console.log(countrysl);
+    const ctysl = await getcities(countrysl);
+    let state;
+    if (localStorage.length !== 0) {
+        state = localStorage.getItem("state");
+        document
+            .querySelector("#city-select option[value='" + state + "']")
+            .setAttribute("selected", "");
+    } else {
+        state = ctysl;
+    }
+    getprayers(countrysl, state, "");
+}
+
 countrylist.addEventListener("change", (e) => {
+    btn.setAttribute("disabled", "");
     getcities(e.target.value);
 });
 
@@ -147,17 +162,4 @@ datepicker.value =
     "-" +
     today.getDate().toString().padStart(2, "0");
 
-getcountry().then((countrysl) => {
-    getcities(countrysl).then((ctysl) => {
-        let state;
-        if (localStorage.length !== 0) {
-            state = localStorage.getItem("state");
-            document
-                .querySelector("#city-select option[value='" + state + "']")
-                .setAttribute("selected", "");
-        } else {
-            state = ctysl;
-        }
-        getprayers(countrysl, state, "");
-    });
-});
+runrequests();
