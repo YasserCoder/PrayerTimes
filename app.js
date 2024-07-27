@@ -2,74 +2,79 @@ let countrylist = document.querySelector("#country-select");
 let citylist = document.querySelector("#city-select");
 let btn = document.querySelector(".btn");
 let datepicker = document.querySelector("#datePicker");
+const loader = document.querySelector(".loader");
+const content = document.querySelector(".config");
+
+const showLoader = () => {
+    loader.style.display = "block";
+    content.style.display = "none";
+};
+
+const hideLoader = () => {
+    loader.style.display = "none";
+    content.style.display = "flex";
+};
 
 async function getcountry() {
-    return fetch("https://countriesnow.space/api/v0.1/countries/iso")
-        .then((response) => {
-            if (response.ok) {
-                return response.json();
-            }
-        })
-        .then((countries) => {
-            for (let country of countries.data) {
-                let option = document.createElement("option");
-                option.value = country.name;
-                option.textContent = country.name;
-                countrylist.appendChild(option);
-            }
-            let countrysl;
-            if (localStorage.length !== 0) {
-                countrysl = localStorage.getItem("country");
-            } else {
-                countrysl = "Algeria";
-            }
-            document
-                .querySelector(
-                    "#country-select option[value='" + countrysl + "']"
-                )
-                .setAttribute("selected", "");
+    const res = await fetch(
+        "https://countriesnow.space/api/v0.1/countries/iso"
+    );
 
-            return countrysl;
-        })
-        .catch(() => {
-            alert("Cannot connect to countries API");
-        });
+    if (!res.ok) {
+        throw new Error("Cannot connect to countries API");
+    }
+    const countries = await res.json();
+
+    for (let country of countries.data) {
+        let option = document.createElement("option");
+        option.value = country.name;
+        option.textContent = country.name;
+        countrylist.appendChild(option);
+    }
+    let countrysl;
+    if (localStorage.length !== 0) {
+        countrysl = localStorage.getItem("country");
+    } else {
+        countrysl = "Algeria";
+    }
+    document
+        .querySelector("#country-select option[value='" + countrysl + "']")
+        .setAttribute("selected", "");
+
+    return countrysl;
 }
 
 async function getcities(countrysl) {
-    return fetch("https://countriesnow.space/api/v0.1/countries/states", {
-        method: "POST",
-        body: JSON.stringify({ country: countrysl }),
-        headers: {
-            "Content-Type": "application/json",
-        },
-    })
-        .then((response) => {
-            if (response.ok) {
-                return response.json();
-            }
-        })
-        .then((states) => {
-            citylist.innerHTML = "";
-            for (let state of states.data.states) {
-                let option = document.createElement("option");
-                option.value = state.name;
-                option.textContent = state.name;
-                citylist.appendChild(option);
-            }
-            let selectedIndex = citylist.selectedIndex;
+    const res = await fetch(
+        "https://countriesnow.space/api/v0.1/countries/states",
+        {
+            method: "POST",
+            body: JSON.stringify({ country: countrysl }),
+            headers: {
+                "Content-Type": "application/json",
+            },
+        }
+    );
+    if (!res.ok) {
+        throw new Error("Cannot connect to states API");
+    }
+    const states = await res.json();
+    citylist.innerHTML = "";
+    for (let state of states.data.states) {
+        let option = document.createElement("option");
+        option.value = state.name;
+        option.textContent = state.name;
+        citylist.appendChild(option);
+    }
+    let selectedIndex = citylist.selectedIndex;
 
-            let citysl = citylist.options[selectedIndex].value;
+    let citysl = citylist.options[selectedIndex].value;
 
-            btn.removeAttribute("disabled");
-            return citysl;
-        })
-        .catch(() => {
-            alert("Cannot connect to states API");
-        });
+    btn.removeAttribute("disabled");
+    return citysl;
 }
 
-function getprayers(country, city, date) {
+async function getprayers(country, city, date) {
     let link = "";
     if (date === "") {
         link =
@@ -87,40 +92,41 @@ function getprayers(country, city, date) {
             country;
     }
 
-    fetch(link)
-        .then((response) => {
-            if (response.ok) {
-                return response.json();
-            }
-        })
-        .then((prayers) => {
-            let obj = prayers.data.timings;
-            let cells = document.querySelectorAll(".cell .prayer");
+    const res = await fetch(link);
+    if (!res.ok) {
+        throw new Error("Cannot connect to prayers API");
+    }
+    const prayers = await res.json();
+    let obj = prayers.data.timings;
+    let cells = document.querySelectorAll(".cell .prayer");
 
-            for (let i = 0; i < cells.length; i++) {
-                let prayername = cells[i].getAttribute("id");
-                cells[i].nextElementSibling.textContent = obj[prayername];
-            }
-            btn.setAttribute("disabled", "");
-        })
-        .catch(() => {
-            alert("cannot connect to API");
-        });
+    for (let i = 0; i < cells.length; i++) {
+        let prayername = cells[i].getAttribute("id");
+        cells[i].nextElementSibling.textContent = obj[prayername];
+    }
+    btn.setAttribute("disabled", "");
 }
 
 async function runrequests() {
-    const countrysl = await getcountry();
-    const ctysl = await getcities(countrysl);
-    let state;
-    if (localStorage.length !== 0) {
-        state = localStorage.getItem("state");
-        document
-            .querySelector("#city-select option[value='" + state + "']")
-            .setAttribute("selected", "");
-    } else {
-        state = ctysl;
+    showLoader();
+    try {
+        const countrysl = await getcountry();
+        const ctysl = await getcities(countrysl);
+        let state;
+        if (localStorage.length !== 0) {
+            state = localStorage.getItem("state");
+            document
+                .querySelector("#city-select option[value='" + state + "']")
+                .setAttribute("selected", "");
+        } else {
+            state = ctysl;
+        }
+        getprayers(countrysl, state, "");
+    } catch (err) {
+        console.log(err);
+    } finally {
+        hideLoader();
     }
-    getprayers(countrysl, state, "");
 }
 
 countrylist.addEventListener("change", (e) => {
